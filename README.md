@@ -1,3 +1,2 @@
-Magno da Adidas
-Não é só um robo...
-É uma maquina mortal.
+# Magno Da Adidas
+Não é só um robo, é uma maquina mortífera 
