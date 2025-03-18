@@ -1,1 +1,3 @@
-# Robocode
+Magno da Adidas
+Não é só um robo...
+É uma maquina mortal.
