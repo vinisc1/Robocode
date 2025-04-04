@@ -1,45 +1,56 @@
+package magno;
 import robocode.*;
+import java.awt.*;
 import robocode.util.Utils;
-import java.awt.Color;
 
 public class MagnoDaAdidas extends AdvancedRobot {
+    private int moveDirection = 1;
     
-    @Override
     public void run() {
-        // Cores do robô preto, branco e amarelo
-        setColors(Color.BLACK, Color.WHITE, Color.YELLOW);         
-        // Movimentação aleatória
+        setColors(Color.black, Color.white, Color.red);
+        setAdjustRadarForGunTurn(true);
+        setAdjustGunForRobotTurn(true);
+        
         while (true) {
-            // Fazendo o robô girar aleatoriamente
-            setTurnRadarRight(360);  // Gira o radar
-            setAhead(100);           // Move para frente
-            setTurnRight(45);        // Gira para a direita
-            execute();               
+            setAhead(100 * moveDirection);
+            setTurnRight(45);
+            setTurnRadarRight(360);
+            execute();
         }
     }
-    
-    @Override
-    public void onScannedRobot(ScannedRobotEvent event) {
-        // Mira no inimigo e atira
-        double bearing = event.getBearing();  // Ângulo do inimigo
-        double distance = event.getDistance(); // Distância do inimigo
 
-        // Tentar prever a próxima posição do inimigo
-        double angleToEnemy = getHeading() + bearing;
-        double predictedX = getX() + Math.sin(Math.toRadians(angleToEnemy)) * distance;
-        double predictedY = getY() + Math.cos(Math.toRadians(angleToEnemy)) * distance;
-
-        // Mira no inimigo
-        setTurnGunRight(bearing);
-        setFire(3); // Tiro com força 3
-        execute();
+    public void onScannedRobot(ScannedRobotEvent e) {
+        double absoluteBearing = getHeadingRadians() + e.getBearingRadians();
+        setTurnGunRightRadians(Utils.normalRelativeAngle(absoluteBearing - getGunHeadingRadians()));
+        
+        double firePower = Math.min(3.0, e.getEnergy() / 4);
+        if (getGunHeat() == 0 && Math.abs(getGunTurnRemaining()) < 10) {
+            setFire(firePower);
+        }
+        
+        if (e.getDistance() < 200) {
+            moveDirection *= -1;
+            setAhead(150 * moveDirection);
+        }
+        
+        setTurnRadarRightRadians(Utils.normalRelativeAngle(absoluteBearing - getRadarHeadingRadians()) * 2);
     }
 
-    @Override
-    public void onHitByBullet(HitByBulletEvent event) {
-        // Quando o robô é atingido, muda de direção
-        setTurnRight(90); // Muda a direção pra não ser atingido de novo
-        setAhead(50);
-        execute(); 
+    public void onHitByBullet(HitByBulletEvent e) {
+        moveDirection *= -1;
+        setAhead(100 * moveDirection);
+        setTurnRight(e.getBearing() + 90);
+    }
+
+    public void onHitWall(HitWallEvent e) {
+        moveDirection *= -1;
+        setBack(100);
+    }
+
+    public void onWin(WinEvent e) {
+        for (int i = 0; i < 10; i++) {
+            turnRight(36);
+            ahead(20);
+        }
     }
 }
